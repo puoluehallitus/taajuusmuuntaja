@@ -1,6 +1,6 @@
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 
-import mouseDeco from 'url:./mouse-deco.json.raw';
+import helvetikerRegular from 'url:./helvetiker-regular.json.raw';
 
 const fontLoader = new FontLoader();
 
@@ -13,7 +13,7 @@ const loadFont = (fontURL: string): Promise<Font> => {
 };
 
 const loadFonts = (): Promise<Font[]> => Promise.all([
-  loadFont(mouseDeco)
+  loadFont(helvetikerRegular),
 ]);
 
 export default loadFonts;
