@@ -135,7 +135,7 @@ function fireOnce(id: string, callback: Function) {
       fireOnce('text2_3', () => {
         scene.remove(textMesh);
         loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-          const textGeometry = new TextGeometry('Music by:\n    Puoluehallitus\n\nCode by: HandOfNod', {
+          const textGeometry = new TextGeometry('Music by:\n    Puoluehallitus\n\nCode by: HandOfNod/Spot', {
               font: font,
               size: 1,
               height: 0.2,
