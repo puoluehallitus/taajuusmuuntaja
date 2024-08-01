@@ -1,11 +1,15 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 
 import loadFont from "./loadFont";
 import loadMusic from "./loadMusic";
 import loadTextures from "./loadTextures";
 import { geometry, path } from "./geometry";
 import getText from "./getText";
+let clearit: any;
+let percentage = 0;
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -46,10 +50,17 @@ const gravity = -0.02;
 const bounceFactor = 0.7;
 camera.position.z = 15;
 camera.position.y = 10;
-
+const fired: Record<string, boolean> = {};
+function fireOnce(id: string, callback: Function) {
+  if (!fired[id]) {
+    fired[id] = true;
+    callback();
+  }
+}
 (async function () {
   document.body.appendChild(renderer.domElement);
   const textures = await loadTextures();
+
   const texture = textures[0]
   const material = new THREE.MeshStandardMaterial({
     map: texture,
@@ -64,7 +75,24 @@ camera.position.y = 10;
   const { listener, sound } = await loadMusic();
   camera.add(listener);
   gear.position.y = 20;
+  const loader = new FontLoader();
+  let textMesh: THREE.Mesh;
+  loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+    const textGeometry = new TextGeometry('Puoluehallitus presents\n Taajuusmuunnin', {
+        font: font,
+        size: 1,
+        height: 0.2,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 0.03,
+        bevelSize: 0.02,
+        bevelOffset: 0,
+        bevelSegments: 5
+    });
+    const textMaterial = new THREE.MeshPhongMaterial({ color: 0xddffff });
+    textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
+});
   // Animation loop
   function animate() {
     requestAnimationFrame(animate);
@@ -72,7 +100,14 @@ camera.position.y = 10;
     // Update velocity and position
     velocity += gravity;
     gear.position.y += velocity;
-
+            // Move the text
+            if (textMesh) {
+              textMesh.position.x -= 0.01;
+              // Add bounds check to reset position
+              if (textMesh.position.x > 5) {
+                  textMesh.position.x = -5;
+              }
+          }
     // Check for collision with the ground
     if (gear.position.y - 1 < 0) {
       gear.position.y = 1; // Reset position
@@ -84,7 +119,77 @@ camera.position.y = 10;
   }
 
   // Start animation
+  const interval = () => setInterval(() => {
+    const time = listener.context.currentTime;
+    percentage = time / maxTime;
+    const roundedPercentage = Math.round(percentage * 1000) / 10;
 
+    if (roundedPercentage === 2) {
+      fireOnce('text1', () => {
+      scene.add(textMesh);
+      textMesh.position.set(0,11, 0);
+      });
+    }
+
+    if (roundedPercentage === 11.5) {
+      fireOnce('text2_3', () => {
+        scene.remove(textMesh);
+        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+          const textGeometry = new TextGeometry('Music by:\n    Puoluehallitus\n\nCode by: HandOfNod', {
+              font: font,
+              size: 1,
+              height: 0.2,
+              curveSegments: 12,
+              bevelEnabled: true,
+              bevelThickness: 0.03,
+              bevelSize: 0.02,
+              bevelOffset: 0,
+              bevelSegments: 5
+          });
+          const textMaterial = new THREE.MeshPhongMaterial({ color: 0xddffff });
+          textMesh = new THREE.Mesh(textGeometry, textMaterial);
+          scene.add(textMesh);
+          textMesh.position.set(0,11, 0);
+      });
+
+      });
+    }
+
+    if (roundedPercentage === 22) {
+      fireOnce('creditsTexts', () => {
+        console.log("Greetings\n      to... Jml, Accession, Byterapers ...especially\n     Nyyrikki ")
+        scene.remove(textMesh);
+        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+          const textGeometry = new TextGeometry('Greetings\n      to... \nJml, Accession, Byterapers \n...especially: Nyyrikki ', {
+              font: font,
+              size: 1,
+              height: 0.2,
+              curveSegments: 12,
+              bevelEnabled: true,
+              bevelThickness: 0.03,
+              bevelSize: 0.02,
+              bevelOffset: 0,
+              bevelSegments: 5
+          });
+          const textMaterial = new THREE.MeshPhongMaterial({ color: 0xddffff });
+          textMesh = new THREE.Mesh(textGeometry, textMaterial);
+          scene.add(textMesh);
+          textMesh.position.set(0,11, 0);
+      });
+      });
+    }
+
+    if (roundedPercentage === 88) {
+      fireOnce('endCredits', () => {
+        console.log("test5")
+
+      });
+    }
+
+    if (percentage > 0.9 && percentage <= 0.97) {
+
+    }
+  }, 10);
   window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
@@ -96,11 +201,14 @@ camera.position.y = 10;
     if (!sound.isPlaying) {
       sound.play();
       animate();
+      clearit= interval();
 
     }
 
   });
 
   const maxTime = sound.buffer?.duration ?? 100;
-  sound.onEnded = () => {};
+  sound.onEnded = () => {
+    clearInterval(clearit);
+  };
 })();
