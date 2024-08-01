@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 
 import loadFont from "./loadFont";
@@ -75,9 +74,11 @@ function fireOnce(id: string, callback: Function) {
   const { listener, sound } = await loadMusic();
   camera.add(listener);
   gear.position.y = 20;
-  const loader = new FontLoader();
+  const [font] = await loadFont();
+
   let textMesh: THREE.Mesh;
-  loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+  (function() {
+    // Wrapping because textGeometry is used as const in below sections
     const textGeometry = new TextGeometry('Puoluehallitus presents\n Taajuusmuunnin', {
         font: font,
         size: 1,
@@ -91,8 +92,8 @@ function fireOnce(id: string, callback: Function) {
     });
     const textMaterial = new THREE.MeshPhongMaterial({ color: 0xddffff });
     textMesh = new THREE.Mesh(textGeometry, textMaterial);
+  })();
 
-});
   // Animation loop
   function animate() {
     requestAnimationFrame(animate);
@@ -134,7 +135,6 @@ function fireOnce(id: string, callback: Function) {
     if (roundedPercentage === 11.5) {
       fireOnce('text2_3', () => {
         scene.remove(textMesh);
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
           const textGeometry = new TextGeometry('Music by:\n    Puoluehallitus\n\nCode by: HandOfNod/Spot', {
               font: font,
               size: 1,
@@ -151,15 +151,12 @@ function fireOnce(id: string, callback: Function) {
           scene.add(textMesh);
           textMesh.position.set(0,11, 0);
       });
-
-      });
     }
 
     if (roundedPercentage === 22) {
       fireOnce('creditsTexts', () => {
         console.log("Greetings\n      to... Jml, Accession, Byterapers ...especially\n     Nyyrikki ")
         scene.remove(textMesh);
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
           const textGeometry = new TextGeometry('Greetings\n      to... \nJml, Accession, Byterapers \n...especially: Nyyrikki ', {
               font: font,
               size: 1,
@@ -175,7 +172,6 @@ function fireOnce(id: string, callback: Function) {
           textMesh = new THREE.Mesh(textGeometry, textMaterial);
           scene.add(textMesh);
           textMesh.position.set(0,11, 0);
-      });
       });
     }
 
