@@ -9,12 +9,34 @@ import { geometry, path } from "./geometry";
 import getText from "./getText";
 let clearit: any;
 let percentage = 0;
-
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 const textureLoader = new THREE.TextureLoader();
+let sphereVelocity = new THREE.Vector3(Math.random() * 0.1 - 0.05, Math.random() * 0.1 - 0.05, Math.random() * 0.1 - 0.05); // Initial random velocity
+const bounds = { x: 10, y: 10, z: 10 }; // Boundaries of the area
+const sphereBounceFactor = 1;
+
+let sphere: any;
+let segments = 32;
+function createSphere() {
+  // Remove existing sphere if it exists
+  if (sphere) {
+      scene.remove(sphere);
+      sphere.geometry.dispose();
+      sphere.material.dispose();
+  }
+
+  // Create the sphere geometry and material
+  const geometry = new THREE.SphereGeometry(1, segments, segments);
+  const material = new THREE.MeshBasicMaterial({ color: 0x006666, wireframe: true });
+
+  // Create the sphere mesh
+  sphere = new THREE.Mesh(geometry, material);
+  sphere.position.set(0, 0, 0); // Start position
+  scene.add(sphere);
+}
 
 function createGear(radius: number, teeth: number, toothDepth: number) {
   const shape = new THREE.Shape();
@@ -90,6 +112,7 @@ function fireOnce(id: string, callback: Function) {
         bevelOffset: 0,
         bevelSegments: 5
     });
+    createSphere();
     const textMaterial = new THREE.MeshPhongMaterial({ color: 0xddffff });
     textMesh = new THREE.Mesh(textGeometry, textMaterial);
   })();
@@ -114,6 +137,19 @@ function fireOnce(id: string, callback: Function) {
       gear.position.y = 1; // Reset position
       velocity = -velocity * bounceFactor; // Reverse and reduce velocity
     }
+    sphere.position.add(sphereVelocity);
+
+    // Check for collision with bounds and reverse velocity if necessary
+    if (sphere.position.x - 1 < -bounds.x || sphere.position.x + 1 > bounds.x) {
+        sphereVelocity.x = -sphereVelocity.x * sphereBounceFactor;
+    }
+    if (sphere.position.y - 1 < -bounds.y || sphere.position.y + 1 > bounds.y) {
+        sphereVelocity.y = -sphereVelocity.y * sphereBounceFactor;
+    }
+    if (sphere.position.z - 1 < -bounds.z || sphere.position.z + 1 > bounds.z) {
+        sphereVelocity.z = -sphereVelocity.z * sphereBounceFactor;
+    }
+
 
     controls.update();
     renderer.render(scene, camera);
@@ -131,6 +167,8 @@ function fireOnce(id: string, callback: Function) {
       textMesh.position.set(0,11, 0);
       });
     }
+    sphere.rotation.x += 0.01;
+    sphere.rotation.y += 0.01;
 
     if (roundedPercentage === 11.5) {
       fireOnce('text2_3', () => {
@@ -150,14 +188,15 @@ function fireOnce(id: string, callback: Function) {
           textMesh = new THREE.Mesh(textGeometry, textMaterial);
           scene.add(textMesh);
           textMesh.position.set(0,11, 0);
+
       });
     }
 
     if (roundedPercentage === 22) {
       fireOnce('creditsTexts', () => {
-        console.log("Greetings\n      to... Jml, Accession, Byterapers ...especially\n     Nyyrikki ")
+        console.log("Greetings\n      to... Jml, Accession, Byterapers, chatGpt ...especially\n     Nyyrikki ")
         scene.remove(textMesh);
-          const textGeometry = new TextGeometry('Greetings\n      to... \nJml, Accession, Byterapers \n...especially: Nyyrikki ', {
+          const textGeometry = new TextGeometry('Greetings\n      to... \nJml, Accession, Byterapers,chatGpt  \n...especially: Nyyrikki ', {
               font: font,
               size: 1,
               height: 0.2,
@@ -177,7 +216,7 @@ function fireOnce(id: string, callback: Function) {
 
     if (roundedPercentage === 88) {
       fireOnce('endCredits', () => {
-        console.log("test5")
+
 
       });
     }
