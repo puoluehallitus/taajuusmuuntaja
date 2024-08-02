@@ -225,10 +225,15 @@ function fireOnce(id: string, callback: Function) {
 
     }
   }, 10);
-  window.addEventListener("resize", () => {
+
+  function resize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  window.addEventListener("resize", () => {
+    resize();
   });
 
   renderer.domElement.addEventListener("click", () => {
@@ -241,6 +246,21 @@ function fireOnce(id: string, callback: Function) {
     }
 
   });
+
+  document.onkeydown = (event) => {
+    if (event.key === 'Escape') {
+      (window as any).electronAPI?.exitFullscreen?.();
+      resize();
+    }
+
+    if (event.key === 'Space') {
+      if (sound.isPlaying) {
+        sound.pause();
+      } else {
+        sound.play();
+      }
+    }
+  };
 
   const maxTime = sound.buffer?.duration ?? 100;
   sound.onEnded = () => {
